@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="684" height="986" viewBox="0 0 684 986" role="img" aria-label="Граф зависимостей">
+  <title>Граф зависимостей</title>
+  <desc>Стрелка: пакет → его зависимость. Пунктир: зависимости узла не раскрыты из-за глубины.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 94.0, 412 94.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="blinker">
+    <title>flask → blinker</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 188.0, 412 188.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="click">
+    <title>flask → click</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 282.0, 412 282.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="importlib-metadata">
+    <title>flask → importlib-metadata</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 376.0, 412 376.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="itsdangerous">
+    <title>flask → itsdangerous</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 470.0, 412 470.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="jinja2">
+    <title>flask → jinja2</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 564.0, 412 564.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="markupsafe">
+    <title>flask → markupsafe</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 658.0, 412 658.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="werkzeug">
+    <title>flask → werkzeug</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 752.0, 412 752.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="asgiref">
+    <title>flask → asgiref</title>
+  </path>
+  <path d="M 272 94.0 C 342.0 94.0, 342.0 846.0, 412 846.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)" data-source="flask" data-target="python-dotenv">
+    <title>flask → python-dotenv</title>
+  </path>
+  <g data-package="flask">
+    <rect x="70" y="70" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" />
+    <text x="171.0" y="99.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">flask</text>
+    <title>flask</title>
+  </g>
+  <g data-package="blinker">
+    <rect x="412" y="70" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="99.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">blinker</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="click">
+    <rect x="412" y="164" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="193.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">click</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="importlib-metadata">
+    <rect x="412" y="258" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="287.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">importlib-metadata</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="itsdangerous">
+    <rect x="412" y="352" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="381.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">itsdangerous</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="jinja2">
+    <rect x="412" y="446" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="475.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">jinja2</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="markupsafe">
+    <rect x="412" y="540" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="569.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">markupsafe</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="werkzeug">
+    <rect x="412" y="634" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="663.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">werkzeug</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="asgiref">
+    <rect x="412" y="728" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="757.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">asgiref</text>
+    <title>Граница глубины</title>
+  </g>
+  <g data-package="python-dotenv">
+    <rect x="412" y="822" width="202" height="48" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5 5" />
+    <text x="513.0" y="851.0" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#0f172a">python-dotenv</text>
+    <title>Граница глубины</title>
+  </g>
+</svg>

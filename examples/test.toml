@@ -1,5 +1,5 @@
 package = "A"
 repository = "repository.txt"
 test_mode = true
-output = "test_graph.png"
+output = "test_graph.svg"
 max_depth = 2

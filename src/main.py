@@ -9,10 +9,15 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlsplit
 from urllib.request import urlopen
 
+if __package__:
+    from .visualization import save_graph
+else:
+    from visualization import save_graph
+
 
 FIELDS = ('package', 'repository', 'test_mode', 'output', 'max_depth')
 MIN_DEPTH = 0
-REQUEST_TIMEOUT = 20
+REQUEST_TIMEOUT = 60
 HTTP_NOT_FOUND = 404
 CONTROL_CHAR_LIMIT = 32
 INVALID_PORT = 0
@@ -60,8 +65,8 @@ def check_url(value):
 def check_output(value, folder):
     if any(c in value for c in '<>:"|?*\\/'):
         raise ValueError('output: укажите имя файла без пути')
-    if Path(value).suffix.lower() != '.png' or value.lower() == '.png':
-        raise ValueError('output: требуется имя файла с расширением .png')
+    if Path(value).suffix.lower() != '.svg' or value.lower() == '.svg':
+        raise ValueError('output: требуется имя файла с расширением .svg')
     reserved = {'CON', 'PRN', 'AUX', 'NUL'}
     reserved.update(f'{prefix}{i}' for prefix in ('COM', 'LPT')
                     for i in range(1, 10))
@@ -273,8 +278,9 @@ def print_reverse(package, dependencies, test_mode):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Вариант 15. Этап 4')
-    parser.add_argument('config', nargs='?', default='config.toml',
+    parser = argparse.ArgumentParser(description='Вариант 15. Этап 5')
+    default = Path(__file__).resolve().parents[1] / 'config.toml'
+    parser.add_argument('config', nargs='?', default=str(default),
                         help='путь к TOML-файлу (по умолчанию config.toml)')
     parser.add_argument('--reverse', metavar='PACKAGE',
                         help='вывести обратные зависимости пакета')
@@ -287,7 +293,12 @@ def main():
                                               args.reverse)
             print_reverse(package, result, config['test_mode'])
         else:
-            print_graph(analyze(config, path.parent))
+            graph = analyze(config, path.parent)
+            print_graph(graph)
+            output = path.parent / config['output']
+            save_graph(graph, output)
+            print(f'Mermaid: {output.with_suffix(".mmd")}')
+            print(f'SVG: {output}')
     except (OSError, ValueError) as error:
         print(f'Ошибка: {error}', file=sys.stderr)
         return 1

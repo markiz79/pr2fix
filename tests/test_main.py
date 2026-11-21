@@ -18,6 +18,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ConfigTests(unittest.TestCase):
     def setUp(self):
+        saver = patch('src.main.save_graph')
+        saver.start()
+        self.addCleanup(saver.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.folder = Path(self.temp.name)
@@ -25,7 +28,7 @@ class ConfigTests(unittest.TestCase):
             'package': 'requests',
             'repository': 'https://pypi.org',
             'test_mode': False,
-            'output': 'graph.png',
+            'output': 'graph.svg',
             'max_depth': 3,
         }
 
@@ -51,7 +54,8 @@ class ConfigTests(unittest.TestCase):
             'repository': ['', 15, 'pypi.org', 'ftp://pypi.org',
                            'https://', 'https://host:bad', 'https://['],
             'test_mode': ['false', 0, 1],
-            'output': ['', 15, 'graph.jpg', '../graph.png', 'CON.png'],
+            'output': ['', 15, 'graph.png', 'graph.jpg',
+                       '../graph.svg', 'CON.svg'],
             'max_depth': [-1, 1.5, '3', True],
         }
         for key, values in cases.items():
@@ -81,7 +85,7 @@ class ConfigTests(unittest.TestCase):
             validate_config(self.config, self.folder)
 
     def test_output_is_directory(self):
-        (self.folder / 'graph.png').mkdir()
+        (self.folder / 'graph.svg').mkdir()
         with self.assertRaisesRegex(ValueError, 'output'):
             validate_config(self.config, self.folder)
 
@@ -115,6 +119,11 @@ class ConfigTests(unittest.TestCase):
 
 
 class DependencyTests(unittest.TestCase):
+    def setUp(self):
+        saver = patch('src.main.save_graph')
+        saver.start()
+        self.addCleanup(saver.stop)
+
     def test_preserves_requirements(self):
         values = ['B>=1', 'C; python_version < "3.12"',
                   'D; extra == "test"']
