@@ -1,13 +1,18 @@
 import argparse
+import json
 import re
 import sys
 import tomllib
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlsplit
+from urllib.request import urlopen
 
 
 FIELDS = ('package', 'repository', 'test_mode', 'output', 'max_depth')
 MIN_DEPTH = 0
+REQUEST_TIMEOUT = 20
+HTTP_NOT_FOUND = 404
 
 
 def check_text(config, key):
@@ -90,21 +95,60 @@ def load_config(path):
     return validate_config(config, path.resolve().parent)
 
 
+def extract_dependencies(data):
+    if not isinstance(data, dict) or not isinstance(data.get('info'), dict):
+        raise ValueError('Некорректные метаданные пакета')
+    info = data['info']
+    if 'requires_dist' not in info:
+        raise ValueError('В ответе отсутствует requires_dist')
+    dependencies = info['requires_dist']
+    if dependencies is None:
+        return []
+    if not isinstance(dependencies, list):
+        raise ValueError('Некорректный список зависимостей')
+    for dependency in dependencies:
+        if not isinstance(dependency, str) or not dependency.strip():
+            raise ValueError('Некорректная запись зависимости')
+    return dependencies
+
+
+def get_dependencies(package, repository):
+    url = repository.rstrip('/') + '/pypi/' + quote(package) + '/json'
+    try:
+        with urlopen(url, timeout=REQUEST_TIMEOUT) as response:
+            data = json.load(response)
+    except HTTPError as error:
+        if error.code == HTTP_NOT_FOUND:
+            raise ValueError('Пакет или адрес API не найден') from error
+        raise ValueError(f'Ошибка HTTP: {error.code}') from error
+    except (URLError, OSError) as error:
+        raise ValueError(
+            f'Не удалось получить данные репозитория: {error}'
+        ) from error
+    except (ValueError, UnicodeError) as error:
+        raise ValueError('Репозиторий вернул некорректный JSON') from error
+    return extract_dependencies(data)
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Вариант 15. Этап 1')
+    parser = argparse.ArgumentParser(description='Вариант 15. Этап 2')
     parser.add_argument('config', nargs='?', default='config.toml',
                         help='путь к TOML-файлу (по умолчанию config.toml)')
     args = parser.parse_args()
     try:
         config = load_config(Path(args.config))
+        if config['test_mode']:
+            raise ValueError('Чтение тестового графа относится к этапу 3')
+        dependencies = get_dependencies(config['package'],
+                                        config['repository'])
     except (OSError, ValueError) as error:
         print(f'Ошибка: {error}', file=sys.stderr)
         return 1
-    for key in FIELDS:
-        value = config[key]
-        if isinstance(value, bool):
-            value = str(value).lower()
-        print(f'{key} = {value}')
+    print(f"Прямые зависимости пакета {config['package']}:")
+    if not dependencies:
+        print('Зависимости отсутствуют')
+    for dependency in dependencies:
+        print(dependency)
     return 0
 
 

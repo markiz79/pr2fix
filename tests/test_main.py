@@ -1,10 +1,16 @@
+import io
+import json
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from contextlib import redirect_stdout, redirect_stderr
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 from src.main import FIELDS, load_config, validate_config
+from src.main import extract_dependencies, get_dependencies, main
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,14 +96,13 @@ class ConfigTests(unittest.TestCase):
             load_config(self.folder / 'missing.toml')
 
     def test_cli_success(self):
-        result = subprocess.run(
-            [sys.executable, 'src/main.py'], cwd=ROOT,
-            capture_output=True, text=True,
-        )
-        self.assertEqual(result.returncode, 0)
-        self.assertEqual(len(result.stdout.splitlines()), len(FIELDS))
-        self.assertIn('test_mode = false', result.stdout)
-        self.assertEqual(result.stderr, '')
+        output = io.StringIO()
+        with patch('sys.argv', ['main.py', str(ROOT / 'config.toml')]):
+            with patch('src.main.get_dependencies', return_value=['B>=1']):
+                with redirect_stdout(output):
+                    self.assertEqual(main(), 0)
+        self.assertIn('B>=1', output.getvalue())
+        self.assertNotIn('max_depth =', output.getvalue())
 
     def test_cli_failure(self):
         result = subprocess.run(
@@ -107,6 +112,78 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertTrue(result.stderr)
         self.assertNotIn('Traceback', result.stderr)
+
+
+class DependencyTests(unittest.TestCase):
+    def test_preserves_requirements(self):
+        values = ['B>=1', 'C; python_version < "3.12"',
+                  'D; extra == "test"']
+        data = {'info': {'requires_dist': values}}
+        self.assertEqual(extract_dependencies(data), values)
+
+    def test_no_dependencies(self):
+        for value in (None, []):
+            with self.subTest(value=value):
+                data = {'info': {'requires_dist': value}}
+                self.assertEqual(extract_dependencies(data), [])
+
+    def test_invalid_metadata(self):
+        for data in ([], {}, {'info': []}, {'info': {}},
+                     {'info': {'requires_dist': 'B'}},
+                     {'info': {'requires_dist': [1]}},
+                     {'info': {'requires_dist': ['']}}):
+            with self.subTest(data=data):
+                with self.assertRaises(ValueError):
+                    extract_dependencies(data)
+
+    def test_download(self):
+        data = {'info': {'requires_dist': ['B>=1']}}
+        response = io.BytesIO(json.dumps(data).encode())
+        with patch('src.main.urlopen', return_value=response) as request:
+            result = get_dependencies('A', 'https://example.org/index/')
+        self.assertEqual(result, ['B>=1'])
+        request.assert_called_once_with(
+            'https://example.org/index/pypi/A/json', timeout=20,
+        )
+
+    def test_network_errors(self):
+        errors = [URLError('offline'), TimeoutError(),
+                  HTTPError('url', 404, 'Not Found', None, None),
+                  HTTPError('url', 500, 'Server Error', None, None)]
+        for error in errors:
+            with self.subTest(error=error):
+                with patch('src.main.urlopen', side_effect=error):
+                    with self.assertRaises(ValueError):
+                        get_dependencies('A', 'https://example.org')
+
+    def test_invalid_json(self):
+        with patch('src.main.urlopen', return_value=io.BytesIO(b'bad')):
+            with self.assertRaisesRegex(ValueError, 'JSON'):
+                get_dependencies('A', 'https://example.org')
+
+    def test_cli_empty(self):
+        output = io.StringIO()
+        with patch('sys.argv', ['main.py', str(ROOT / 'config.toml')]):
+            with patch('src.main.get_dependencies', return_value=[]):
+                with redirect_stdout(output):
+                    self.assertEqual(main(), 0)
+        self.assertIn('Зависимости отсутствуют', output.getvalue())
+
+    def test_cli_network_error(self):
+        output = io.StringIO()
+        with patch('sys.argv', ['main.py', str(ROOT / 'config.toml')]):
+            with patch('src.main.urlopen', side_effect=URLError('offline')):
+                with redirect_stderr(output):
+                    self.assertEqual(main(), 1)
+        self.assertIn('Ошибка:', output.getvalue())
+
+    def test_cli_test_mode(self):
+        path = str(ROOT / 'examples/test.toml')
+        with patch('sys.argv', ['main.py', path]):
+            with patch('src.main.urlopen') as request:
+                with redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(), 1)
+                request.assert_not_called()
 
 
 if __name__ == '__main__':
