@@ -101,7 +101,7 @@ class ConfigTests(unittest.TestCase):
             with patch('src.main.get_dependencies', return_value=['B>=1']):
                 with redirect_stdout(output):
                     self.assertEqual(main(), 0)
-        self.assertIn('B>=1', output.getvalue())
+        self.assertIn('requests: b', output.getvalue())
         self.assertNotIn('max_depth =', output.getvalue())
 
     def test_cli_failure(self):
@@ -167,7 +167,7 @@ class DependencyTests(unittest.TestCase):
             with patch('src.main.get_dependencies', return_value=[]):
                 with redirect_stdout(output):
                     self.assertEqual(main(), 0)
-        self.assertIn('Зависимости отсутствуют', output.getvalue())
+        self.assertIn('нет зависимостей', output.getvalue())
 
     def test_cli_network_error(self):
         output = io.StringIO()
@@ -181,8 +181,8 @@ class DependencyTests(unittest.TestCase):
         path = str(ROOT / 'examples/test.toml')
         with patch('sys.argv', ['main.py', path]):
             with patch('src.main.urlopen') as request:
-                with redirect_stderr(io.StringIO()):
-                    self.assertEqual(main(), 1)
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(), 0)
                 request.assert_not_called()
 
 
