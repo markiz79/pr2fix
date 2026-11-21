@@ -232,19 +232,65 @@ def print_graph(graph):
         print(f'{package}: {value}')
 
 
+def reverse_graph(graph):
+    result = {package: [] for package in graph}
+    for package, dependencies in graph.items():
+        for dependency in dependencies or []:
+            parents = result.setdefault(dependency, [])
+            if package not in parents:
+                parents.append(package)
+    return result
+
+
+def reverse_dependencies(graph, package, max_depth):
+    if package not in graph:
+        raise ValueError(f'Пакет {package} отсутствует в графе')
+    reversed_graph = reverse_graph(graph)
+    reachable = build_graph(package, max_depth, reversed_graph.__getitem__)
+    return [name for name in reachable if name != package]
+
+
+def analyze_reverse(config, folder, package):
+    if config['test_mode']:
+        graph = read_test_repository(folder / config['repository'])
+    else:
+        package = normalize_package(package)
+        graph = analyze(config, folder)
+    result = reverse_dependencies(graph, package, config['max_depth'])
+    return package, result
+
+
+def print_reverse(package, dependencies, test_mode):
+    if test_mode:
+        print('Область поиска: весь тестовый репозиторий.')
+    else:
+        print('Область поиска: построенный граф, не весь репозиторий PyPI.')
+    print(f'Обратные зависимости пакета {package}:')
+    if not dependencies:
+        print('В пределах глубины анализа обратные зависимости не найдены')
+    for dependency in dependencies:
+        print(dependency)
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Вариант 15. Этап 3')
+    parser = argparse.ArgumentParser(description='Вариант 15. Этап 4')
     parser.add_argument('config', nargs='?', default='config.toml',
                         help='путь к TOML-файлу (по умолчанию config.toml)')
+    parser.add_argument('--reverse', metavar='PACKAGE',
+                        help='вывести обратные зависимости пакета')
     args = parser.parse_args()
     try:
         path = Path(args.config).resolve()
         config = load_config(path)
-        graph = analyze(config, path.parent)
+        if args.reverse is not None:
+            package, result = analyze_reverse(config, path.parent,
+                                              args.reverse)
+            print_reverse(package, result, config['test_mode'])
+        else:
+            print_graph(analyze(config, path.parent))
     except (OSError, ValueError) as error:
         print(f'Ошибка: {error}', file=sys.stderr)
         return 1
-    print_graph(graph)
     return 0
 
 
